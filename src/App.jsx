@@ -24,6 +24,7 @@ export default function App() {
       <FAQ />
       <Contact />
       <Footer />
+      <FloatingWhatsApp />
     </main>
   );
 }

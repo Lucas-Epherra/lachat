@@ -1,7 +1,7 @@
 import { whatsappUrl } from "../config/contact";
 
-// Botón flotante de contacto rápido.
-// Pensado para facilitar consultas desde mobile.
+// Botón flotante de WhatsApp.
+// Permite iniciar una consulta rápida desde cualquier parte de la landing.
 
 export default function FloatingWhatsApp() {
   return (

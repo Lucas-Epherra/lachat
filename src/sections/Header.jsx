@@ -27,6 +27,8 @@ export default function Header() {
 
         <a
           href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
           className="rounded-full bg-[#082E3A] px-5 py-2.5 text-[11px] font-bold text-[#FFF9EF] transition hover:bg-[#123E4B]"
         >
           Consultar

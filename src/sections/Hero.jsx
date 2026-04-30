@@ -37,9 +37,20 @@ export default function Hero() {
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Button href={whatsappUrl}>Consultar por WhatsApp</Button>
+            <Button
+              target="_blank"
+              rel="noopener noreferrer"
+              href={whatsappUrl}
+            >
+              Consultar por WhatsApp
+            </Button>
 
-            <Button href={emailUrl} variant="secondary">
+            <Button
+              target="_blank"
+              rel="noopener noreferrer"
+              href={emailUrl}
+              variant="secondary"
+            >
               Enviar email
             </Button>
           </div>

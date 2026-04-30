@@ -27,6 +27,8 @@ export default function Contact() {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a
               href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-full bg-[#FFF9EF] px-6 py-3 text-xs font-bold text-[#082E3A] transition hover:-translate-y-0.5 hover:bg-[#F5ECDD]"
             >
               WhatsApp
@@ -34,6 +36,8 @@ export default function Contact() {
 
             <a
               href={emailUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-full border border-[#D7B56D]/50 px-6 py-3 text-xs font-bold text-[#FFF9EF] transition hover:bg-[#FFF9EF]/10"
             >
               Email
@@ -52,6 +56,8 @@ export default function Contact() {
 
           <a
             href={contact.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-10 inline-block text-sm font-bold text-[#D7B56D] hover:text-[#FFF9EF]"
           >
             Ver Instagram →

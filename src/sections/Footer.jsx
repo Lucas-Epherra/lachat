@@ -14,7 +14,7 @@ export default function Footer() {
             rel="noopener noreferrer"
             className="font-medium transition-colors hover:text-[#0D7B56] underline underline-offset-4"
           >
-            Web developed by Lucas Epherra
+            Web desarrollada por Lucas Epherra
           </a>{" "}
           © {currentYear} Estudio Jurídico Lachat. Todos los derechos reservados.
         </p>

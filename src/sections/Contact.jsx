@@ -31,7 +31,7 @@ export default function Contact() {
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-full bg-[#FFF9EF] px-6 py-3 text-xs font-bold text-[#082E3A] transition hover:-translate-y-0.5 hover:bg-[#F5ECDD]"
             >
-              WhatsApp
+            Consultar Por WhatsApp
             </a>
 
             <a
@@ -40,7 +40,7 @@ export default function Contact() {
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-full border border-[#D7B56D]/50 px-6 py-3 text-xs font-bold text-[#FFF9EF] transition hover:bg-[#FFF9EF]/10"
             >
-              Email
+             Enviar Email
             </a>
           </div>
         </div>

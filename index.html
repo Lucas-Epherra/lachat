@@ -1,49 +1,112 @@
 <!doctype html>
-<html lang="en">
+<html lang="es-AR">
   <head>
+    <!-- Codificación de caracteres -->
     <meta charset="UTF-8" />
-    <link rel="shortcut icon" href="/public/favicon.ico" type="image/x-icon" />
-    <link rel="apple-touch-icon" href="/public/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Estudio Jurídico Lachat</title>
 
+    <!-- Responsive: necesario para que el sitio se adapte bien a mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Favicon del navegador -->
+    <!-- En Vite, los archivos dentro de /public se referencian desde la raíz -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+    <!-- Icono para dispositivos Apple -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- URL principal del sitio para evitar contenido duplicado en buscadores -->
+    <link rel="canonical" href="https://www.estudiolachat.com.ar/" />
+
+    <!-- Título SEO: aparece en Google y en la pestaña del navegador -->
+    <title>
+      Estudio Jurídico Lachat | Contratos, Locaciones y Asesoramiento Legal
+    </title>
+
+    <!-- Descripción SEO: aparece debajo del título en resultados de búsqueda -->
     <meta
       name="description"
-      content="Asesoramiento legal, redacción y revisión de contratos de locación, arrendamientos rurales e intimaciones por carta documento."
+      content="Estudio Jurídico Lachat brinda asesoramiento legal, redacción y revisión de contratos de locación, arrendamientos rurales e intimaciones por carta documento."
     />
 
+    <!-- Palabras clave: hoy tienen poco peso SEO, pero no molestan si están bien usadas -->
     <meta
       name="keywords"
-      content="abogada, estudio jurídico, contratos, locaciones, arrendamientos rurales, carta documento, intimaciones"
+      content="abogada, estudio jurídico, contratos, locaciones, arrendamientos rurales, carta documento, intimaciones, asesoramiento legal"
     />
 
+    <!-- Autor del sitio -->
     <meta name="author" content="Estudio Jurídico Lachat" />
+
+    <!-- Indica a buscadores que pueden indexar el sitio y seguir enlaces -->
     <meta name="robots" content="index, follow" />
+
+    <!-- Color sugerido para la barra del navegador en algunos dispositivos -->
+    <meta name="theme-color" content="#0f2f3a" />
+
+    <!-- Open Graph: controla cómo se ve el enlace al compartir en WhatsApp, Facebook, LinkedIn, etc. -->
     <meta property="og:title" content="Estudio Jurídico Lachat" />
+
     <meta
       property="og:description"
-      content="Contratos claros, reclamos firmes y asesoramiento legal preventivo."
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://estudio-lachat.vercel.app/" />
-    <meta
-      property="og:image"
-      content="https://estudio-lachat.vercel.app/og-lachat.png"
+      content="Contratos claros, reclamos firmes y asesoramiento legal preventivo para locaciones, arrendamientos rurales e intimaciones."
     />
 
+    <!-- Tipo de contenido: website porque es una landing/sitio institucional -->
+    <meta property="og:type" content="website" />
+
+    <!-- URL oficial del sitio -->
+    <meta property="og:url" content="https://www.estudiolachat.com.ar/" />
+
+    <!-- Nombre del sitio que aparece en algunas previews -->
+    <meta property="og:site_name" content="Estudio Jurídico Lachat" />
+
+    <!-- Idioma/localización -->
+    <meta property="og:locale" content="es_AR" />
+
+    <!-- Imagen de preview para redes -->
+    <!-- Recomendado: 1200x630 px -->
+    <meta
+      property="og:image"
+      content="https://www.estudiolachat.com.ar/og-lachat.png"
+    />
+
+    <!-- Medidas de la imagen Open Graph -->
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Texto alternativo para la imagen de preview -->
+    <meta
+      property="og:image:alt"
+      content="Estudio Jurídico Lachat - Asesoramiento legal inmobiliario y contractual"
+    />
+
+    <!-- Twitter / X Card: controla cómo se ve el enlace en Twitter/X -->
     <meta name="twitter:card" content="summary_large_image" />
+
     <meta name="twitter:title" content="Estudio Jurídico Lachat" />
+
     <meta
       name="twitter:description"
-      content="Asesoramiento legal para locaciones, arrendamientos e intimaciones."
+      content="Asesoramiento legal para locaciones, arrendamientos rurales, contratos e intimaciones."
     />
+
+    <!-- Usar la misma imagen que Open Graph -->
     <meta
       name="twitter:image"
-      content="https://estudio-lachat.vercel.app/og-lachat.png"
+      content="https://www.estudiolachat.com.ar/og-lachat.png"
+    />
+
+    <meta
+      name="twitter:image:alt"
+      content="Estudio Jurídico Lachat - Asesoramiento legal inmobiliario y contractual"
     />
   </head>
+
   <body>
+    <!-- Punto de montaje de React -->
     <div id="root"></div>
+
+    <!-- Entrada principal de la aplicación Vite/React -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

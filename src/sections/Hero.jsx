@@ -6,13 +6,13 @@ import { Divider } from "../components/Dividers";
 import { whatsappUrl, emailUrl } from "../config/contact";
 
 // Sección principal de presentación.
-// Es el primer impacto visual y comercial de la landing.
+// Primer impacto visual y comercial de la landing.
 
 export default function Hero() {
   const expressItems = [
-    "Contratos personalizados",
-    "Revisión preventiva",
-    "Locaciones y garantías",
+    "Contratos de locación",
+    "Revisión legal remota",
+    "Arrendamientos rurales",
     "Cartas documento",
   ];
 
@@ -22,18 +22,18 @@ export default function Hero() {
 
       <div className="relative z-10 grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
-          <Label>Contratos claros. Reclamos firmes.</Label>
+          <Label>Contratos, locaciones y consultas legales remotas</Label>
 
-          <h1 className="mt-8 max-w-4xl font-serif text-5xl font-semibold leading-[0.95] tracking-[-0.045em] text-[#082E3A] md:text-7xl">
-            Asesoramiento legal para alquilar, arrendar o intimar con respaldo.
+          <h1 className="mt-8 max-w-4xl font-serif text-4xl font-semibold leading-[0.98] tracking-[-0.045em] text-[#082E3A] sm:text-5xl lg:text-6xl">
+            Asesoramiento legal claro para contratos, locaciones y reclamos.
           </h1>
 
           <Divider />
 
           <p className="max-w-2xl text-base leading-8 text-[#355966] md:text-lg">
-            Redacción y revisión de contratos de locación, arrendamientos
-            rurales e intimaciones por carta documento, con una mirada clara,
-            preventiva y estratégica.
+            Revisamos, redactamos y ordenamos documentación legal con una mirada
+            preventiva, estratégica y personalizada. Atención remota para
+            resolver consultas sin necesidad de trasladarte.
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -51,9 +51,14 @@ export default function Hero() {
               href={emailUrl}
               variant="secondary"
             >
-              Enviar email
+              Enviar Email
             </Button>
           </div>
+
+          <p className="mt-5 max-w-xl text-sm leading-6 text-[#355966]/80">
+            Atención online · Respuesta personalizada · Asesoramiento para
+            particulares, propietarios, inquilinos y clientes del ámbito rural.
+          </p>
         </div>
 
         <div className="relative mx-auto w-full max-w-md">
@@ -67,12 +72,17 @@ export default function Hero() {
             <LeafSprig className="-right-5 top-12 h-44 w-24 text-[#D7B56D]/24" />
 
             <div className="relative z-10">
-              <Label dark>Servicio express</Label>
+              <Label dark>Consulta remota</Label>
 
-              <h2 className="mt-8 font-serif text-4xl leading-tight">
-                Antes de firmar, asesorate. Antes de reclamar, intimá
-                correctamente.
+              <h2 className="mt-8 font-serif text-3xl leading-tight md:text-4xl">
+                Antes de firmar, reclamar o intimar, asesorate con respaldo
+                profesional.
               </h2>
+
+              <p className="mt-5 text-sm leading-7 text-[#FFF9EF]/80">
+                Enviá tu consulta o documentación y recibí orientación legal
+                clara sobre los próximos pasos.
+              </p>
 
               <div className="mt-10 space-y-4">
                 {expressItems.map((item) => (

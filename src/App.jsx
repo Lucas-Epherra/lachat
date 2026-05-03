@@ -1,6 +1,7 @@
 import Header from "./sections/Header";
 import Hero from "./sections/Hero";
 import Services from "./sections/Services";
+import CommonSituations from "./sections/CommonSituations";
 import Approach from "./sections/Approach";
 import Process from "./sections/Process";
 import FAQ from "./sections/FAQ";
@@ -19,6 +20,7 @@ export default function App() {
       <Header />
       <Hero />
       <Services />
+      <CommonSituations />
       <Approach />
       <Process />
       <FAQ />

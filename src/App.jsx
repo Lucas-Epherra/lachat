@@ -1,8 +1,10 @@
 import Header from "./sections/Header";
 import Hero from "./sections/Hero";
 import Services from "./sections/Services";
+import CommonSituations from "./sections/CommonSituations";
 import Approach from "./sections/Approach";
 import Process from "./sections/Process";
+import PreConsultation from "./sections/PreConsultation";
 import FAQ from "./sections/FAQ";
 import Contact from "./sections/Contact";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
@@ -19,9 +21,11 @@ export default function App() {
       <Header />
       <Hero />
       <Services />
+      <CommonSituations />
       <Approach />
       <Process />
       <FAQ />
+      <PreConsultation />
       <Contact />
       <Footer />
       <FloatingWhatsApp />

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://estudiolachat.com.ar/sitemap.xml
+Sitemap: https://www.estudiolachat.com.ar/sitemap.xml

@@ -7,6 +7,7 @@ import { createClient } from "supabase";
  * - Recibir un webhook cuando se inserta una nueva consulta en contact_requests.
  * - Generar links privados temporales para los archivos adjuntos.
  * - Enviar un email automático al estudio usando Resend.
+ * - Incluir un bloque listo para copiar/pegar en Excel o Google Sheets.
  *
  * Seguridad:
  * - Esta función corre del lado servidor en Supabase Edge Functions.
@@ -57,12 +58,36 @@ type SignedAttachment = {
 const STORAGE_BUCKET = "legal-documents";
 
 /**
- * Duración de los links firmados.
- *
- * Supabase espera el tiempo en segundos.
- * 15 días = 60 * 60 * 24 * 15 = 1.296.000 segundos.
+ * Tiempo de expiración para la URL firmada de Supabase Storage.
+ * Supabase espera el valor expresado en segundos.
+ * 
+ * Nota: 7 días es el límite máximo estricto permitido por el protocolo 
+ * subyacente (AWS S3) para URLs firmadas.
+ * 
+ * 7 días = 60 (seg) * 60 (min) * 24 (hs) * 7 (días) = 604.800 segundos.
  */
-const SIGNED_URL_EXPIRES_IN_SECONDS = 60 * 60 * 24 * 15;
+const SIGNED_URL_EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7;
+
+/**
+ * Encabezados pensados para copiar/pegar en Excel o Google Sheets.
+ *
+ * Usamos separador ; porque en configuraciones regionales como Argentina
+ * suele funcionar mejor que la coma para CSV.
+ */
+const EXCEL_HEADERS = [
+  "Fecha",
+  "Estado",
+  "Nombre",
+  "Telefono",
+  "Email",
+  "Tipo de consulta",
+  "Mensaje",
+  "Tiene adjuntos",
+  "Cantidad adjuntos",
+  "Archivos",
+  "Links de descarga",
+  "ID consulta",
+];
 
 /**
  * Headers base para respuestas JSON.
@@ -126,38 +151,6 @@ const getFileNameFromPath = (path: string) => {
 };
 
 /**
- * Formatea la fecha para Argentina.
- */
-const formatDate = (dateValue: string) => {
-  return new Intl.DateTimeFormat("es-AR", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "America/Argentina/Buenos_Aires",
-  }).format(new Date(dateValue));
-};
-
-/**
- * Encabezados pensados para copiar/pegar en Excel o Google Sheets.
- *
- * Usamos separador ; porque en configuraciones regionales como Argentina
- * suele funcionar mejor que la coma para CSV.
- */
-const EXCEL_HEADERS = [
-  "Fecha",
-  "Estado",
-  "Nombre",
-  "Telefono",
-  "Email",
-  "Tipo de consulta",
-  "Mensaje",
-  "Tiene adjuntos",
-  "Cantidad adjuntos",
-  "Archivos",
-  "Links de descarga",
-  "ID consulta",
-];
-
-/**
  * Normaliza texto para que entre en una sola celda de Excel.
  *
  * Evita saltos de línea y espacios raros que podrían romper el pegado.
@@ -183,79 +176,47 @@ const toCsvCell = (value: string | number | boolean | null | undefined) => {
 };
 
 /**
- * Fecha pensada para Excel.
+ * Formatea la fecha para mostrar en el email.
+ */
+const formatDate = (dateValue: string) => {
+  return new Intl.DateTimeFormat("es-AR", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).format(new Date(dateValue));
+};
+
+/**
+ * Formatea fecha en formato estable para gestión.
  *
- * Formato claro y estable para gestión:
+ * Ejemplo:
  * 2026-05-04 18:30
+ *
+ * Usamos formatToParts para respetar zona horaria argentina
+ * sin depender del timezone del servidor.
  */
 const formatDateForExcel = (dateValue: string) => {
-  const date = new Date(dateValue);
-
-  const formatter = new Intl.DateTimeFormat("es-AR", {
+  const parts = new Intl.DateTimeFormat("es-AR", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
     timeZone: "America/Argentina/Buenos_Aires",
-  });
+  }).formatToParts(new Date(dateValue));
 
-  return formatter.format(date);
-};
+  const getPart = (type: string) => {
+    return parts.find((part) => part.type === type)?.value ?? "";
+  };
 
-/**
- * Construye una fila lista para copiar a Excel.
- *
- * Incluye:
- * - datos del cliente
- * - tipo de consulta
- * - mensaje resumido en una sola línea
- * - nombres de archivos
- * - links de descarga firmados por 15 días
- */
-const buildExcelRow = (
-  record: ContactRequestRecord,
-  attachments: SignedAttachment[],
-) => {
-  const attachmentNames = attachments
-    .map((attachment) => attachment.fileName)
-    .join(" | ");
+  const year = getPart("year");
+  const month = getPart("month");
+  const day = getPart("day");
+  const hour = getPart("hour");
+  const minute = getPart("minute");
 
-  const attachmentLinks = attachments
-    .map((attachment) => attachment.signedUrl)
-    .join(" | ");
-
-  const row = [
-    formatDateForExcel(record.created_at),
-    "Nuevo",
-    record.full_name,
-    record.phone,
-    record.email,
-    record.case_type,
-    record.message,
-    attachments.length > 0 ? "Sí" : "No",
-    attachments.length,
-    attachmentNames,
-    attachmentLinks,
-    record.submission_id,
-  ];
-
-  return row.map(toCsvCell).join(";");
-};
-
-/**
- * Construye el bloque visible para copiar a Excel.
- *
- * Incluye encabezados + fila.
- */
-const buildExcelCopyBlock = (
-  record: ContactRequestRecord,
-  attachments: SignedAttachment[],
-) => {
-  const headers = EXCEL_HEADERS.map(toCsvCell).join(";");
-  const row = buildExcelRow(record, attachments);
-
-  return `${headers}\n${row}`;
+  return `${year}-${month}-${day} ${hour}:${minute}`;
 };
 
 /**
@@ -335,6 +296,61 @@ const createSignedAttachments = async (
 };
 
 /**
+ * Construye una fila lista para copiar a Excel.
+ *
+ * Incluye:
+ * - datos del cliente
+ * - tipo de consulta
+ * - mensaje resumido en una sola línea
+ * - nombres de archivos
+ * - links de descarga firmados por 15 días
+ */
+const buildExcelRow = (
+  record: ContactRequestRecord,
+  attachments: SignedAttachment[],
+) => {
+  const attachmentNames = attachments
+    .map((attachment) => attachment.fileName)
+    .join(" | ");
+
+  const attachmentLinks = attachments
+    .map((attachment) => attachment.signedUrl)
+    .join(" | ");
+
+  const row = [
+    formatDateForExcel(record.created_at),
+    "Nuevo",
+    record.full_name,
+    record.phone,
+    record.email,
+    record.case_type,
+    record.message,
+    attachments.length > 0 ? "Sí" : "No",
+    attachments.length,
+    attachmentNames,
+    attachmentLinks,
+    record.submission_id,
+  ];
+
+  return row.map(toCsvCell).join(";");
+};
+
+/**
+ * Construye el bloque visible para copiar a Excel.
+ *
+ * Incluye encabezados + fila.
+ */
+const buildExcelCopyBlock = (
+  record: ContactRequestRecord,
+  attachments: SignedAttachment[],
+) => {
+  const headers = EXCEL_HEADERS.map(toCsvCell).join(";");
+  const row = buildExcelRow(record, attachments);
+
+  return `${headers}\n${row}`;
+};
+
+/**
  * Construye el bloque HTML de adjuntos.
  */
 const buildAttachmentsHtml = (attachments: SignedAttachment[]) => {
@@ -353,7 +369,7 @@ const buildAttachmentsHtml = (attachments: SignedAttachment[]) => {
           (attachment) => `
             <li style="margin-bottom: 10px;">
               <a
-                href="${attachment.signedUrl}"
+                href="${escapeHtml(attachment.signedUrl)}"
                 style="color: #0B6B78; font-weight: 700;"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -433,6 +449,11 @@ const buildEmailHtml = (
                 </tr>
 
                 <tr>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #EEE; font-weight: 700;">Estado sugerido</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #EEE;">Nuevo</td>
+                </tr>
+
+                <tr>
                   <td style="padding: 10px 0; border-bottom: 1px solid #EEE; font-weight: 700;">Nombre</td>
                   <td style="padding: 10px 0; border-bottom: 1px solid #EEE;">${escapeHtml(record.full_name)}</td>
                 </tr>
@@ -461,6 +482,7 @@ const buildEmailHtml = (
             <div style="padding: 16px; border-radius: 12px; background: #FFF9EF; border: 1px solid #E9D8B8;">
               <p style="margin: 0; white-space: pre-line;">${escapeHtml(record.message)}</p>
             </div>
+
             <h2 style="margin: 28px 0 10px; font-size: 18px;">
               Adjuntos
             </h2>
@@ -489,11 +511,6 @@ const buildEmailHtml = (
  * Construye una versión texto plano del email.
  *
  * Buena práctica para compatibilidad con clientes de correo.
- */
-/**
- * Construye una versión texto plano del email.
- *
- * Buena práctica para compatibilidad con clientes de correo.
  * También incluimos una fila lista para copiar a Excel.
  */
 const buildEmailText = (
@@ -502,9 +519,7 @@ const buildEmailText = (
 ) => {
   const attachmentLines = attachments.length
     ? attachments
-        .map(
-          (attachment) => `- ${attachment.fileName}: ${attachment.signedUrl}`,
-        )
+        .map((attachment) => `- ${attachment.fileName}: ${attachment.signedUrl}`)
         .join("\n")
     : "Sin archivos adjuntos.";
 
@@ -533,6 +548,7 @@ ID de consulta:
 ${record.submission_id}
   `.trim();
 };
+
 /**
  * Envía el email con Resend.
  */
@@ -544,10 +560,10 @@ const sendNotificationEmail = async (
   const notificationEmail = getRequiredEnv("NOTIFICATION_EMAIL");
 
   /**
-   * Para prueba usamos onboarding@resend.dev.
+   * FROM_EMAIL se configura como secret.
    *
-   * En producción real conviene verificar dominio y usar algo como:
-   * Estudio Lachat <notificaciones@estudiolachat.com.ar>
+   * Ejemplo recomendado:
+   * Estudio Lachat <consultas@notificaciones.estudiolachat.com.ar>
    */
   const fromEmail =
     Deno.env.get("FROM_EMAIL") ?? "Estudio Lachat <onboarding@resend.dev>";
@@ -628,7 +644,10 @@ Deno.serve(async (request) => {
      * 1. Generamos links firmados para adjuntos privados.
      * 2. Enviamos email al estudio.
      */
-    const signedAttachments = await createSignedAttachments(record.file_paths);
+    const signedAttachments = await createSignedAttachments(
+      record.file_paths ?? [],
+    );
+
     const emailResult = await sendNotificationEmail(record, signedAttachments);
 
     return jsonResponse({

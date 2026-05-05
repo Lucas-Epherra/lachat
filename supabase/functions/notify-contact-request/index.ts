@@ -60,10 +60,10 @@ const STORAGE_BUCKET = "legal-documents";
 /**
  * Tiempo de expiración para la URL firmada de Supabase Storage.
  * Supabase espera el valor expresado en segundos.
- * 
- * Nota: 7 días es el límite máximo estricto permitido por el protocolo 
+ *
+ * Nota: 7 días es el límite máximo estricto permitido por el protocolo
  * subyacente (AWS S3) para URLs firmadas.
- * 
+ *
  * 7 días = 60 (seg) * 60 (min) * 24 (hs) * 7 (días) = 604.800 segundos.
  */
 const SIGNED_URL_EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7;
@@ -383,7 +383,7 @@ const buildAttachmentsHtml = (attachments: SignedAttachment[]) => {
     </ul>
 
     <p style="margin-top: 12px; font-size: 13px; color: #667;">
-      Los links de descarga son privados y vencen en 15 días.
+      Los links de descarga son privados y vencen en 7 días.
     </p>
   `;
 };
@@ -519,7 +519,9 @@ const buildEmailText = (
 ) => {
   const attachmentLines = attachments.length
     ? attachments
-        .map((attachment) => `- ${attachment.fileName}: ${attachment.signedUrl}`)
+        .map(
+          (attachment) => `- ${attachment.fileName}: ${attachment.signedUrl}`,
+        )
         .join("\n")
     : "Sin archivos adjuntos.";
 
@@ -594,6 +596,78 @@ const sendNotificationEmail = async (
   return resendResult;
 };
 
+type AppendToGoogleSheetParams = {
+  record: ContactRequestRecord;
+  attachments: SignedAttachment[];
+};
+
+/**
+ * Envía la consulta a Google Sheets mediante Apps Script.
+ *
+ * Decisión de arquitectura:
+ * - Si Google Sheets falla, NO rompemos el flujo completo.
+ * - El email ya es la notificación principal.
+ * - La planilla es una automatización operativa.
+ *
+ * Por eso esta función lanza error, pero el handler principal
+ * la va a capturar sin devolver 500 al webhook.
+ */
+const appendToGoogleSheet = async ({
+  record,
+  attachments,
+}: AppendToGoogleSheetParams) => {
+  const sheetsWebhookUrl = getRequiredEnv("SHEETS_WEBHOOK_URL");
+  const sheetsWebhookSecret = getRequiredEnv("SHEETS_WEBHOOK_SECRET");
+
+  const attachmentNames = attachments
+    .map((attachment) => attachment.fileName)
+    .join(" | ");
+
+  const attachmentLinks = attachments
+    .map((attachment) => attachment.signedUrl)
+    .join(" | ");
+
+  const url = new URL(sheetsWebhookUrl);
+
+  /**
+   * Apps Script recibe este secret como query param.
+   * Lo hacemos así porque los headers personalizados pueden ser más incómodos
+   * de leer en Web Apps simples.
+   */
+  url.searchParams.set("secret", sheetsWebhookSecret);
+
+  const response = await fetch(url.toString(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      createdAt: formatDateForExcel(record.created_at),
+      status: "Nuevo",
+      fullName: record.full_name,
+      phone: record.phone,
+      email: record.email,
+      caseType: record.case_type,
+      message: normalizeOneLine(record.message),
+      hasFiles: attachments.length > 0,
+      attachmentsCount: attachments.length,
+      attachmentNames,
+      attachmentLinks,
+      submissionId: record.submission_id,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || result.ok === false) {
+    console.error("Google Sheets webhook error:", result);
+
+    throw new Error("Google Sheets webhook failed.");
+  }
+
+  return result;
+};
+
 /**
  * Handler principal.
  */
@@ -650,10 +724,37 @@ Deno.serve(async (request) => {
 
     const emailResult = await sendNotificationEmail(record, signedAttachments);
 
+    /**
+     * Automatización secundaria:
+     * intentamos guardar la consulta en Google Sheets.
+     *
+     * Si falla, lo registramos en logs pero no rompemos la notificación por email.
+     * Esto evita duplicar emails o generar falsos errores para el usuario.
+     */
+    let sheetsResult: unknown = null;
+    let sheetsError: string | null = null;
+
+    try {
+      sheetsResult = await appendToGoogleSheet({
+        record,
+        attachments: signedAttachments,
+      });
+    } catch (error) {
+      sheetsError =
+        error instanceof Error ? error.message : "Unknown Sheets error";
+
+      console.error("appendToGoogleSheet failed:", error);
+    }
+
     return jsonResponse({
       ok: true,
       attachmentsCount: signedAttachments.length,
       email: emailResult,
+      sheets: {
+        ok: !sheetsError,
+        result: sheetsResult,
+        error: sheetsError,
+      },
     });
   } catch (error) {
     console.error("notify-contact-request error:", error);
